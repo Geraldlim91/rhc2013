@@ -24,6 +24,10 @@ import com.google.gwt.user.client.ui.Widget;
 import org.redhatchallenge.rhc2013.resources.Resources;
 import org.redhatchallenge.rhc2013.shared.FieldVerifier;
 
+import static org.redhatchallenge.rhc2013.client.LocaleUtil.getCountryFromIndex;
+import static org.redhatchallenge.rhc2013.client.LocaleUtil.getLanguageFromIndex;
+import static org.redhatchallenge.rhc2013.client.LocaleUtil.getRegionFromIndex;
+
 /**
  * @author: Terry Chia (terrycwk1994@gmail.com)
  */
@@ -32,6 +36,7 @@ public class RegisterScreen extends Composite {
     }
 
     private static RegisterScreenUiBinder UiBinder = GWT.create(RegisterScreenUiBinder.class);
+    private MessageMessages messages = GWT.create(MessageMessages.class);
 
     @UiField HTMLPanel htmlPanel;
     @UiField TextBox emailField;
@@ -136,7 +141,7 @@ public class RegisterScreen extends Composite {
     @UiHandler("registerButton")
     public void handleRegisterButtonClick(ClickEvent event) {
         if(!FieldVerifier.isValidEmail(emailField.getText())) {
-            emailLabel.setText("Your email is in an invalid format!");
+            emailLabel.setText(messages.invalidEmailFormat());
         }
 
         else {
@@ -166,19 +171,19 @@ public class RegisterScreen extends Composite {
         final String lecturerFirstName = lecturerFirstNameField.getText();
         final String lecturerLastName = lecturerLastNameField.getText();
         final String lecturerEmail = lecturerEmailField.getText();
-        final String language = languageField.getItemText(languageField.getSelectedIndex());
+        final String language = getLanguageFromIndex(languageField.getSelectedIndex());
         final String country;
 
         /**
          * If country is China, append the region.
          */
-        if(countryField.getItemText(countryField.getSelectedIndex()).equalsIgnoreCase("china")) {
-            country = countryField.getItemText(countryField.getSelectedIndex()) + "/" +
-                    regionField.getItemText(regionField.getSelectedIndex());
+        if(getCountryFromIndex(countryField.getSelectedIndex()).equalsIgnoreCase("china")) {
+            country = getCountryFromIndex(countryField.getSelectedIndex()) + "/" +
+                    getRegionFromIndex(regionField.getSelectedIndex());
         }
 
         else {
-            country = countryField.getItemText(countryField.getSelectedIndex());
+            country = getCountryFromIndex(countryField.getSelectedIndex());
         }
 
         authenticationService = AuthenticationService.Util.getInstance();
@@ -188,19 +193,17 @@ public class RegisterScreen extends Composite {
                 lecturerEmail, language, new AsyncCallback<Boolean>() {
             @Override
             public void onFailure(Throwable throwable) {
-                errorLabel.setText("An unexpected error has occurred, please try again later!");
+                errorLabel.setText(messages.unexpectedError());
             }
 
             @Override
             public void onSuccess(Boolean bool) {
                 if(bool) {
-                    ContentContainer.INSTANCE.setContent(new MessageScreen("<h1>Hi " + firstName + ", almost there!</h1><br/>" +
-                            "<h1>Go to " + email + " and confirm your registration.</h1> <br/> <h1>Tell your friends that you have " +
-                            "registered for Red Hat Challenge 2013. Get them to join as well!</h1>"));
+                    ContentContainer.INSTANCE.setContent(new MessageScreen(messages.verifyMailMessage(firstName, email)));
                 }
 
                 else {
-                    errorLabel.setText("Someone has already used this email/contact. Try another?");
+                    errorLabel.setText(messages.emailTaken());
                 }
             }
         });

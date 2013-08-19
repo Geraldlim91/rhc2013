@@ -20,6 +20,10 @@ import com.google.gwt.user.client.ui.Widget;
 import org.redhatchallenge.rhc2013.resources.Resources;
 import org.redhatchallenge.rhc2013.shared.Student;
 
+import static org.redhatchallenge.rhc2013.client.LocaleUtil.getCountryFromIndex;
+import static org.redhatchallenge.rhc2013.client.LocaleUtil.getLanguageFromIndex;
+import static org.redhatchallenge.rhc2013.client.LocaleUtil.getRegionFromIndex;
+
 /**
  * @author: Terry Chia (terrycwk1994@gmail.com)
  */
@@ -30,6 +34,7 @@ public class ProfileScreen extends Composite {
     }
 
     private static ProfileScreenUiBinder UiBinder = GWT.create(ProfileScreenUiBinder.class);
+    private  MessageMessages messages = GWT.create(MessageMessages.class);
 
     @UiField TextBox emailField;
     @UiField PasswordTextBox currentPasswordField;
@@ -71,7 +76,7 @@ public class ProfileScreen extends Composite {
             profileService.getProfileData(new AsyncCallback<Student>() {
                 @Override
                 public void onFailure(Throwable throwable) {
-                    ContentContainer.INSTANCE.setContent(new MessageScreen("You are probably not logged in"));
+                    ContentContainer.INSTANCE.setContent(new MessageScreen(messages.probablyNotLoginIn()));
                 }
 
                 @Override
@@ -237,19 +242,19 @@ public class ProfileScreen extends Composite {
         final String lecturerFirstName = lecturerFirstNameField.getText();
         final String lecturerLastName = lecturerLastNameField.getText();
         final String lecturerEmail = lecturerEmailField.getText();
-        final String language = languageField.getItemText(languageField.getSelectedIndex());
+        final String language = getLanguageFromIndex(languageField.getSelectedIndex());
         final String country;
 
         /**
          * If country is China, append the region.
          */
-        if(countryField.getItemText(countryField.getSelectedIndex()).equalsIgnoreCase("china")) {
-            country = countryField.getItemText(countryField.getSelectedIndex()) + "/" +
-                    regionField.getItemText(regionField.getSelectedIndex());
+        if(getCountryFromIndex(countryField.getSelectedIndex()).equalsIgnoreCase("china")) {
+            country = getCountryFromIndex(countryField.getSelectedIndex()) + "/" +
+                    getRegionFromIndex(regionField.getSelectedIndex());
         }
 
         else {
-            country = countryField.getItemText(countryField.getSelectedIndex());
+            country = getCountryFromIndex(countryField.getSelectedIndex());
         }
 
         profileService = ProfileService.Util.getInstance();
@@ -259,13 +264,13 @@ public class ProfileScreen extends Composite {
                 lecturerEmail, language, new AsyncCallback<Boolean>() {
             @Override
             public void onFailure(Throwable throwable) {
-                errorLabel.setText("An unexpected error has occurred, please try again later!");
+                errorLabel.setText(messages.unexpectedError());
             }
 
             @Override
             public void onSuccess(Boolean bool) {
                 if(bool) {
-                    errorLabel.setText("Profile update successful!");
+                    errorLabel.setText(messages.profileUpdated());
                     final Storage localStorage = Storage.getLocalStorageIfSupported();
                     /**
                      * If browser supports HTML5 storage, stores the authenticated user's
@@ -287,7 +292,7 @@ public class ProfileScreen extends Composite {
                 }
 
                 else {
-                    errorLabel.setText("Profile update failed! Please double check your inputs!");
+                    errorLabel.setText(messages.profileUpdateFail());
                 }
             }
         });
